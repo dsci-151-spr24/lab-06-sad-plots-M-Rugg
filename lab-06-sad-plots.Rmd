@@ -143,7 +143,7 @@ staff_long %>%
   ggplot(aes(x = year, y = value, group = faculty_type, color = faculty_type)) +
   geom_line() +
   labs(
-    title = "Faculty Trend over Time (1975-2011)", xlab = "", ylab = ""
+    title = "Faculty Trend over Time (1975-2011)", x = "", y = ""
   ) +
   theme(legend.title = element_blank())
 ```
@@ -190,13 +190,63 @@ knitr::include_graphics("img/fisheries.png")
 
 4.  Can you help them make improve it? First, brainstorm how you would improve it. Then create the improved visualization and write up the changes/decisions you made as bullet points. It's ok if some of your improvements are aspirational, i.e. you don't know how to implement it, but you think it's a good idea.
 
-Load the data.
 
-```{r load-data-fisheries, eval = FALSE}
-fisheries <- read_csv("data/fisheries.csv")
+**Ways to improve:**
+ - remove or replace the pie charts
+ - show the complete legend
+ - replace the chart on the left with bars or some other form that does not indicate an ordered list 
+ - Add a title and labels
+
+
+**Changes made:**
+ - removed the pie charts since they are not a good way of showing readable data
+ - replaced the chart on the left with a bar chart since there is no valuable order to the countries
+ - used a full, proportional bar chart to display the data to show the proportion of aquaculture to capture in each country
+ - added legend, labels, title and subtitle
+ - limited the data to 250,000 tons or more to increase readability of coutries
+ - split the data into 2 separate bar charts (1,000,000+ tons and 250,000 - 500,000 tons) to further increase readability
+ - adjusted the color for aesthetics
+ - ordered the bars loosely by decreasing aquaculture siae (the graph uses proportions and the ordering used the minimum before proportions to reorder, however, I don't know how to do it elsewise)
+ 
+Load the data. 
+
+```{r load-data-fisheries, eval = TRUE}
+fisheries <- read_csv("data/fisheries.csv", show_col_types = FALSE)
 ```
 
 5.  Create a new data visualisation for these data that implements the improvements you proposed in the previous exercise (or many of them as you can).
+
+``` {r}
+
+fisheries %>%
+  filter(total > 1000000) %>%
+  mutate(country = fct_reorder(country, aquaculture, min)) %>%
+  #arrange(capture/total) %>%
+  select(-total) %>%
+  pivot_longer(cols = -country, names_to = "type") %>%
+  ggplot(aes(y = country, x = value, fill = type)) +
+  geom_bar(stat = "identity", position = "fill") + scale_fill_manual(values = c("#9ecae1", "#3182bd")) + 
+  labs(title = "Proportion of fishing types by country", subtitle = "1,000,000 tons or greater", x = "Proportion", y = "", fill = "") +
+  #theme(legend.title = element_blank()) +
+  theme(legend.position = "bottom") +
+  theme_minimal()
+```
+``` {r}
+fisheries %>%
+  filter(total >= 250000, total <= 1000000) %>%
+  mutate(country = fct_reorder(country, aquaculture, min)) %>%
+  #arrange(capture/total) %>%
+  select(-total) %>%
+  pivot_longer(cols = -country, names_to = "type") %>%
+  ggplot(aes(y = country, x = value, fill = type)) +
+  geom_bar(stat = "identity", position = "fill") + scale_fill_manual(values = c("#9ecae1", "#3182bd")) + 
+  #theme(legend.title = element_blank()) +
+  theme(legend.position = "bottom") +
+  labs(title = "Proportion of fishing types by country", subtitle = "250,000 - 500,000 tons", x = "Proportion", y = "", fill = "") +
+  theme_minimal()
+```
+
+
 
 🧶 ✅ ⬆️ Knit, *commit, and push your changes to GitHub with an appropriate commit message. Make sure to commit and push all changed files so that your Git pane is cleared up afterwards and review the md document on GitHub to make sure you're happy with the final state of your work.*
 
